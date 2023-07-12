@@ -107,7 +107,7 @@ func NewGaugeVec(opts *GaugeOpts, labels []string) *GaugeVec {
 	fqName := BuildFQName(opts.Namespace, opts.Subsystem, opts.Name)
 	allowListLock.RLock()
 	if allowList, ok := labelValueAllowLists[fqName]; ok {
-		opts.LabelValueAllowLists = allowList
+		opts.labelValueAllowLists = allowList
 	}
 	allowListLock.RUnlock()
 
@@ -147,8 +147,8 @@ func (v *GaugeVec) WithLabelValuesChecked(lvs ...string) (GaugeMetric, error) {
 		}
 		return noop, errNotRegistered // return no-op gauge
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
 	}
 	elt, err := v.GaugeVec.GetMetricWithLabelValues(lvs...)
 	return elt, err
@@ -184,8 +184,8 @@ func (v *GaugeVec) WithChecked(labels map[string]string) (GaugeMetric, error) {
 		}
 		return noop, errNotRegistered // return no-op gauge
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainLabelMap(labels)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainLabelMap(labels)
 	}
 	elt, err := v.GaugeVec.GetMetricWith(labels)
 	return elt, err

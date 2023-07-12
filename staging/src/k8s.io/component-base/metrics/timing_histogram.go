@@ -127,7 +127,7 @@ func NewTestableTimingHistogramVec(nowFunc func() time.Time, opts *TimingHistogr
 	fqName := BuildFQName(opts.Namespace, opts.Subsystem, opts.Name)
 	allowListLock.RLock()
 	if allowList, ok := labelValueAllowLists[fqName]; ok {
-		opts.LabelValueAllowLists = allowList
+		opts.labelValueAllowLists = allowList
 	}
 	allowListLock.RUnlock()
 
@@ -173,8 +173,8 @@ func (v *TimingHistogramVec) WithLabelValuesChecked(lvs ...string) (GaugeMetric,
 		}
 		return noop, errNotRegistered
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
 	}
 	ops, err := v.TimingHistogramVec.GetMetricWithLabelValues(lvs...)
 	if err != nil {
@@ -212,8 +212,8 @@ func (v *TimingHistogramVec) WithChecked(labels map[string]string) (GaugeMetric,
 		}
 		return noop, errNotRegistered
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainLabelMap(labels)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainLabelMap(labels)
 	}
 	ops, err := v.TimingHistogramVec.GetMetricWith(labels)
 	return ops.(GaugeMetric), err

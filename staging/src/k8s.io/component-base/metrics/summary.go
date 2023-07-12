@@ -111,7 +111,7 @@ func NewSummaryVec(opts *SummaryOpts, labels []string) *SummaryVec {
 	fqName := BuildFQName(opts.Namespace, opts.Subsystem, opts.Name)
 	allowListLock.RLock()
 	if allowList, ok := labelValueAllowLists[fqName]; ok {
-		opts.LabelValueAllowLists = allowList
+		opts.labelValueAllowLists = allowList
 	}
 	allowListLock.RUnlock()
 
@@ -158,8 +158,8 @@ func (v *SummaryVec) WithLabelValues(lvs ...string) ObserverMetric {
 	if !v.IsCreated() {
 		return noop
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
 	}
 	return v.SummaryVec.WithLabelValues(lvs...)
 }
@@ -172,8 +172,8 @@ func (v *SummaryVec) With(labels map[string]string) ObserverMetric {
 	if !v.IsCreated() {
 		return noop
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainLabelMap(labels)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainLabelMap(labels)
 	}
 	return v.SummaryVec.With(labels)
 }

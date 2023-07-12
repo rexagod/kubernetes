@@ -98,7 +98,7 @@ func NewHistogramVec(opts *HistogramOpts, labels []string) *HistogramVec {
 	fqName := BuildFQName(opts.Namespace, opts.Subsystem, opts.Name)
 	allowListLock.RLock()
 	if allowList, ok := labelValueAllowLists[fqName]; ok {
-		opts.LabelValueAllowLists = allowList
+		opts.labelValueAllowLists = allowList
 	}
 	allowListLock.RUnlock()
 
@@ -146,8 +146,8 @@ func (v *HistogramVec) WithLabelValues(lvs ...string) ObserverMetric {
 	if !v.IsCreated() {
 		return noop
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
 	}
 	return v.HistogramVec.WithLabelValues(lvs...)
 }
@@ -160,8 +160,8 @@ func (v *HistogramVec) With(labels map[string]string) ObserverMetric {
 	if !v.IsCreated() {
 		return noop
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainLabelMap(labels)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainLabelMap(labels)
 	}
 	return v.HistogramVec.With(labels)
 }

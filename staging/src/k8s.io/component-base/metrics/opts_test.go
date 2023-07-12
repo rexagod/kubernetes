@@ -63,7 +63,7 @@ func TestDefaultStabilityLevel(t *testing.T) {
 }
 
 func TestConstrainToAllowedList(t *testing.T) {
-	allowList := &MetricLabelAllowList{
+	allowList := &metricLabelAllowList{
 		labelToAllowList: map[string]sets.String{
 			"label_a": sets.NewString("allow_value1", "allow_value2"),
 		},
@@ -96,7 +96,7 @@ func TestConstrainToAllowedList(t *testing.T) {
 }
 
 func TestConstrainLabelMap(t *testing.T) {
-	allowList := &MetricLabelAllowList{
+	allowList := &metricLabelAllowList{
 		labelToAllowList: map[string]sets.String{
 			"label_a": sets.NewString("allow_value1", "allow_value2"),
 		},

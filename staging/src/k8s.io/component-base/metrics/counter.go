@@ -121,7 +121,7 @@ func NewCounterVec(opts *CounterOpts, labels []string) *CounterVec {
 	fqName := BuildFQName(opts.Namespace, opts.Subsystem, opts.Name)
 	allowListLock.RLock()
 	if allowList, ok := labelValueAllowLists[fqName]; ok {
-		opts.LabelValueAllowLists = allowList
+		opts.labelValueAllowLists = allowList
 	}
 	allowListLock.RUnlock()
 
@@ -174,8 +174,8 @@ func (v *CounterVec) WithLabelValues(lvs ...string) CounterMetric {
 	if !v.IsCreated() {
 		return noop // return no-op counter
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainToAllowedList(v.originalLabels, lvs)
 	}
 	return v.CounterVec.WithLabelValues(lvs...)
 }
@@ -188,8 +188,8 @@ func (v *CounterVec) With(labels map[string]string) CounterMetric {
 	if !v.IsCreated() {
 		return noop // return no-op counter
 	}
-	if v.LabelValueAllowLists != nil {
-		v.LabelValueAllowLists.ConstrainLabelMap(labels)
+	if v.labelValueAllowLists != nil {
+		v.labelValueAllowLists.ConstrainLabelMap(labels)
 	}
 	return v.CounterVec.With(labels)
 }

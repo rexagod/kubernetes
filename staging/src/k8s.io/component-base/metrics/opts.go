@@ -33,7 +33,7 @@ import (
 )
 
 var (
-	labelValueAllowLists = map[string]*MetricLabelAllowList{}
+	labelValueAllowLists = map[string]*metricLabelAllowList{}
 	allowListLock        sync.RWMutex
 )
 
@@ -53,7 +53,7 @@ type KubeOpts struct {
 	deprecateOnce        sync.Once
 	annotateOnce         sync.Once
 	StabilityLevel       StabilityLevel
-	LabelValueAllowLists *MetricLabelAllowList
+	labelValueAllowLists *metricLabelAllowList
 }
 
 // BuildFQName joins the given three name components by "_". Empty name
@@ -170,7 +170,7 @@ type HistogramOpts struct {
 	deprecateOnce        sync.Once
 	annotateOnce         sync.Once
 	StabilityLevel       StabilityLevel
-	LabelValueAllowLists *MetricLabelAllowList
+	labelValueAllowLists *metricLabelAllowList
 }
 
 // Modify help description on the metric description.
@@ -217,7 +217,7 @@ type TimingHistogramOpts struct {
 	deprecateOnce        sync.Once
 	annotateOnce         sync.Once
 	StabilityLevel       StabilityLevel
-	LabelValueAllowLists *MetricLabelAllowList
+	labelValueAllowLists *metricLabelAllowList
 }
 
 // Modify help description on the metric description.
@@ -268,7 +268,7 @@ type SummaryOpts struct {
 	deprecateOnce        sync.Once
 	annotateOnce         sync.Once
 	StabilityLevel       StabilityLevel
-	LabelValueAllowLists *MetricLabelAllowList
+	labelValueAllowLists *metricLabelAllowList
 }
 
 // Modify help description on the metric description.
@@ -314,11 +314,11 @@ func (o *SummaryOpts) toPromSummaryOpts() prometheus.SummaryOpts {
 	}
 }
 
-type MetricLabelAllowList struct {
+type metricLabelAllowList struct {
 	labelToAllowList map[string]sets.String
 }
 
-func (allowList *MetricLabelAllowList) ConstrainToAllowedList(labelNameList, labelValueList []string) {
+func (allowList *metricLabelAllowList) ConstrainToAllowedList(labelNameList, labelValueList []string) {
 	for index, value := range labelValueList {
 		name := labelNameList[index]
 		if allowValues, ok := allowList.labelToAllowList[name]; ok {
@@ -330,7 +330,7 @@ func (allowList *MetricLabelAllowList) ConstrainToAllowedList(labelNameList, lab
 	}
 }
 
-func (allowList *MetricLabelAllowList) ConstrainLabelMap(labels map[string]string) {
+func (allowList *metricLabelAllowList) ConstrainLabelMap(labels map[string]string) {
 	for name, value := range labels {
 		if allowValues, ok := allowList.labelToAllowList[name]; ok {
 			if !allowValues.Has(value) {
@@ -355,7 +355,7 @@ func SetLabelAllowListFromCLI(allowListMapping map[string]string) {
 		} else {
 			labelToAllowList := make(map[string]sets.String)
 			labelToAllowList[labelName] = valueSet
-			labelValueAllowLists[metricName] = &MetricLabelAllowList{
+			labelValueAllowLists[metricName] = &metricLabelAllowList{
 				labelToAllowList,
 			}
 		}
