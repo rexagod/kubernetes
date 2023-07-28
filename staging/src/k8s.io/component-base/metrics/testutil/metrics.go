@@ -110,7 +110,7 @@ func PrintSample(sample *model.Sample) string {
 	// but it works...
 	_, normalContainer := sample.Metric["kubernetes_container_name"]
 	for k, v := range sample.Metric {
-		if strings.HasPrefix(string(k), "__") {
+		if strings.HasPrefix(string(k), metrics.ReservedLabelPrefix) {
 			continue
 		}
 

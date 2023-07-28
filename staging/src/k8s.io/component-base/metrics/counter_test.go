@@ -18,7 +18,12 @@ package metrics
 
 import (
 	"bytes"
+	dto "github.com/prometheus/client_model/go"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/prometheus/common/expfmt"
@@ -283,5 +288,55 @@ func TestCounterWithLabelValueAllowList(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCounterWithExemplar(t *testing.T) {
+	// Initialize a counter with the current time. Storing this will help us mock it later.
+	now := time.Now()
+	counter := NewCounter(&CounterOpts{
+		Name: "test",
+		Help: "test help",
+	})
+	counter.now = func() time.Time { return now }
+	err := counter.AddWithExemplar(42, Labels{"foo": "bar"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a timestamp using the counter's now function.
+	// This will be used within the expected exemplar data structure to compare against
+	// the internally generated timestamp of the counter.
+	ts := timestamppb.New(now)
+	if err := ts.CheckValid(); err != nil {
+		t.Fatal(err)
+	}
+	expectedExemplar := &dto.Exemplar{
+		Label: []*dto.LabelPair{
+			{Name: proto.String("foo"), Value: proto.String("bar")},
+		},
+		Value:     proto.Float64(42),
+		Timestamp: ts,
+	}
+
+	// Check that the exemplar was set correctly.
+	if expected, got := expectedExemplar.String(), counter.exemplar.Load().(*dto.Exemplar).String(); expected != got {
+		t.Errorf("expected exemplar %s, got %s.", expected, got)
+	}
+
+	// Check that an exemplar with invalid labels is rejected.
+	err = counter.AddWithExemplar(42, Labels{":o)": "smile"})
+	if err == nil {
+		t.Error("adding exemplar with invalid label succeeded")
+	}
+
+	// Check that an exemplar with an overall size greater than ExemplarMaxRunes is rejected.
+	err = counter.AddWithExemplar(42, Labels{
+		"abcdefghijklmnopqrstuvwxyz": "26+16 characters",
+		"x1234567":                   "8+15 characters",
+		"z":                          strings.Repeat("x", 63),
+	})
+	if err == nil {
+		t.Error("adding exemplar with too many runes succeeded")
 	}
 }

@@ -18,6 +18,9 @@ package metrics
 
 import (
 	"context"
+	"fmt"
+	"sync/atomic"
+	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,6 +34,10 @@ type Counter struct {
 	*CounterOpts
 	lazyMetric
 	selfCollector
+	exemplar atomic.Value
+	// now is a function that returns the time of the instantiation.
+	// It is used to set the internal timestamp for the exemplar, also helps in mocking them during testing.
+	now func() time.Time
 }
 
 // The implementation of the Metric interface is expected by testutil.GetCounterMetricValue.
@@ -45,6 +52,7 @@ func NewCounter(opts *CounterOpts) *Counter {
 	kc := &Counter{
 		CounterOpts: opts,
 		lazyMetric:  lazyMetric{stabilityLevel: opts.StabilityLevel},
+		now:         time.Now,
 	}
 	kc.setPrometheusCounter(noop)
 	kc.lazyInit(kc, BuildFQName(opts.Namespace, opts.Subsystem, opts.Name))
@@ -96,6 +104,26 @@ func (c *Counter) initializeDeprecatedMetric() {
 // WithContext allows the normal Counter metric to pass in context. The context is no-op now.
 func (c *Counter) WithContext(ctx context.Context) CounterMetric {
 	return c.CounterMetric
+}
+
+// AddWithExemplar adds the given value to the counter. It also sets the exemplar for the counter and will behave the
+// same as Add if there are no exemplar labels specified.
+func (c *Counter) AddWithExemplar(v float64, e Labels) error {
+	c.Add(v)
+	return c.updateExemplar(v, e)
+}
+
+func (c *Counter) updateExemplar(v float64, l Labels) error {
+	if l == nil {
+		return nil
+	}
+	e, err := newExemplar(v, c.now(), l)
+	if err != nil {
+		return fmt.Errorf("failed to create exemplar: %v", err)
+	}
+	c.exemplar.Store(e)
+
+	return nil
 }
 
 // CounterVec is the internal representation of our wrapping struct around prometheus
